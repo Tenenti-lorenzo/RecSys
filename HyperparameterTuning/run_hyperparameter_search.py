@@ -25,7 +25,7 @@ from Recommenders.EASE_R.EASE_R_Recommender import EASE_R_Recommender
 
 # KNN machine learning
 from Recommenders.SLIM.Cython.SLIM_BPR_Cython import SLIM_BPR_Cython
-#from Recommenders.SLIM.SLIMElasticNetRecommender import SLIMElasticNetRecommender, MultiThreadSLIM_SLIMElasticNetRecommender
+from Recommenders.SLIM.SLIMElasticNetRecommender import SLIMElasticNetRecommender #, MultiThreadSLIM_SLIMElasticNetRecommender
 
 # Matrix Factorization
 from Recommenders.MatrixFactorization.PureSVDRecommender import PureSVDRecommender, PureSVDItemRecommender
@@ -958,7 +958,7 @@ def runHyperparameterSearch_Collaborative(recommender_class, URM_train, URM_trai
 
         ##########################################################################################################
 
-        if recommender_class is SLIMElasticNetRecommender or recommender_class is MultiThreadSLIM_SLIMElasticNetRecommender:
+        if recommender_class is SLIMElasticNetRecommender:# or recommender_class is MultiThreadSLIM_SLIMElasticNetRecommender:
 
             hyperparameters_range_dictionary = {
                 "topK": Integer(5, 1000),

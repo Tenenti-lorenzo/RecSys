@@ -132,130 +132,130 @@ class SLIMElasticNetRecommender(BaseItemSimilarityMatrixRecommender):
 
 
 
-from multiprocessing import Pool, cpu_count, shared_memory
-from functools import partial
+# from multiprocessing import Pool, cpu_count,shared_memory
+# from functools import partial
 
 
-def create_shared_memory(a):
-    shm = shared_memory.SharedMemory(create=True, size=a.nbytes)
-    b = np.ndarray(a.shape, dtype=a.dtype, buffer=shm.buf)
-    b[:] = a[:]
-    return shm
+# def create_shared_memory(a):
+#     shm = shared_memory.SharedMemory(create=True, size=a.nbytes)
+#     b = np.ndarray(a.shape, dtype=a.dtype, buffer=shm.buf)
+#     b[:] = a[:]
+#     return shm
 
 
-@ignore_warnings(category=ConvergenceWarning)
-def _partial_fit(items, topK, alpha, l1_ratio, urm_shape, positive_only=True, shm_names=None, shm_shapes=None, shm_dtypes=None):
+# @ignore_warnings(category=ConvergenceWarning)
+# def _partial_fit(items, topK, alpha, l1_ratio, urm_shape, positive_only=True, shm_names=None, shm_shapes=None, shm_dtypes=None):
 
-    model = ElasticNet(
-        alpha=alpha,
-        l1_ratio=l1_ratio,
-        positive=positive_only,
-        fit_intercept=False,
-        copy_X=False,
-        precompute=True,
-        selection='random',
-        max_iter=100,
-        tol=1e-4
-    )
+#     model = ElasticNet(
+#         alpha=alpha,
+#         l1_ratio=l1_ratio,
+#         positive=positive_only,
+#         fit_intercept=False,
+#         copy_X=False,
+#         precompute=True,
+#         selection='random',
+#         max_iter=100,
+#         tol=1e-4
+#     )
 
-    indptr_shm = shared_memory.SharedMemory(name=shm_names[0], create=False)
-    indices_shm = shared_memory.SharedMemory(name=shm_names[1], create=False)
-    data_shm = shared_memory.SharedMemory(name=shm_names[2], create=False)
+#     indptr_shm = shared_memory.SharedMemory(name=shm_names[0], create=False)
+#     indices_shm = shared_memory.SharedMemory(name=shm_names[1], create=False)
+#     data_shm = shared_memory.SharedMemory(name=shm_names[2], create=False)
 
-    X_j = sps.csc_matrix((
-            np.ndarray(shm_shapes[2], dtype=shm_dtypes[2], buffer=data_shm.buf).copy(),
-            np.ndarray(shm_shapes[1], dtype=shm_dtypes[1], buffer=indices_shm.buf),
-            np.ndarray(shm_shapes[0], dtype=shm_dtypes[0], buffer=indptr_shm.buf),
-        ), shape=urm_shape)
+#     X_j = sps.csc_matrix((
+#             np.ndarray(shm_shapes[2], dtype=shm_dtypes[2], buffer=data_shm.buf).copy(),
+#             np.ndarray(shm_shapes[1], dtype=shm_dtypes[1], buffer=indices_shm.buf),
+#             np.ndarray(shm_shapes[0], dtype=shm_dtypes[0], buffer=indptr_shm.buf),
+#         ), shape=urm_shape)
 
-    values, rows, cols = [], [], []
+#     values, rows, cols = [], [], []
 
-    for currentItem in items:
+#     for currentItem in items:
 
-        y = X_j[:, currentItem].toarray()
+#         y = X_j[:, currentItem].toarray()
 
-        backup = X_j.data[X_j.indptr[currentItem]:X_j.indptr[currentItem + 1]]
-        X_j.data[X_j.indptr[currentItem]:X_j.indptr[currentItem + 1]] = 0.0
+#         backup = X_j.data[X_j.indptr[currentItem]:X_j.indptr[currentItem + 1]]
+#         X_j.data[X_j.indptr[currentItem]:X_j.indptr[currentItem + 1]] = 0.0
 
-        model.fit(X_j, y)
+#         model.fit(X_j, y)
 
-        nonzero_model_coef_index = model.sparse_coef_.indices
-        nonzero_model_coef_value = model.sparse_coef_.data
+#         nonzero_model_coef_index = model.sparse_coef_.indices
+#         nonzero_model_coef_value = model.sparse_coef_.data
 
-        local_topK = min(len(nonzero_model_coef_value) - 1, topK)
+#         local_topK = min(len(nonzero_model_coef_value) - 1, topK)
 
-        relevant_items_partition = (-nonzero_model_coef_value).argpartition(local_topK)[:local_topK]
-        relevant_items_partition_sorting = np.argsort(-nonzero_model_coef_value[relevant_items_partition])
-        ranking = relevant_items_partition[relevant_items_partition_sorting]
+#         relevant_items_partition = (-nonzero_model_coef_value).argpartition(local_topK)[:local_topK]
+#         relevant_items_partition_sorting = np.argsort(-nonzero_model_coef_value[relevant_items_partition])
+#         ranking = relevant_items_partition[relevant_items_partition_sorting]
 
-        values.extend(nonzero_model_coef_value[ranking])
-        rows.extend(nonzero_model_coef_index[ranking])
-        cols.extend([currentItem] * len(ranking))
+#         values.extend(nonzero_model_coef_value[ranking])
+#         rows.extend(nonzero_model_coef_index[ranking])
+#         cols.extend([currentItem] * len(ranking))
 
-        X_j.data[X_j.indptr[currentItem]:X_j.indptr[currentItem + 1]] = backup
+#         X_j.data[X_j.indptr[currentItem]:X_j.indptr[currentItem + 1]] = backup
 
-    indptr_shm.close()
-    indices_shm.close()
-    data_shm.close()
+#     indptr_shm.close()
+#     indices_shm.close()
+#     data_shm.close()
 
-    return values, rows, cols
-
-
+#     return values, rows, cols
 
 
-class MultiThreadSLIM_SLIMElasticNetRecommender(SLIMElasticNetRecommender):
 
-    def fit(self, alpha=1.0, l1_ratio=0.1, positive_only=True, topK=100,
-            verbose=True, workers=int(cpu_count()*0.3)):
 
-        assert l1_ratio>= 0 and l1_ratio<=1, \
-            "ElasticNet: l1_ratio must be between 0 and 1, provided value was {}".format(l1_ratio)
+# class MultiThreadSLIM_SLIMElasticNetRecommender(SLIMElasticNetRecommender):
 
-        self.alpha = alpha
-        self.l1_ratio = l1_ratio
-        self.positive_only = positive_only
-        self.topK = topK
+#     def fit(self, alpha=1.0, l1_ratio=0.1, positive_only=True, topK=100,
+#             verbose=True, workers=int(cpu_count()*0.3)):
 
-        self.workers = workers
+#         assert l1_ratio>= 0 and l1_ratio<=1, \
+#             "ElasticNet: l1_ratio must be between 0 and 1, provided value was {}".format(l1_ratio)
 
-        self.URM_train = check_matrix(self.URM_train, 'csc', dtype=np.float32)
+#         self.alpha = alpha
+#         self.l1_ratio = l1_ratio
+#         self.positive_only = positive_only
+#         self.topK = topK
 
-        indptr_shm = create_shared_memory(self.URM_train.indptr)
-        indices_shm = create_shared_memory(self.URM_train.indices)
-        data_shm = create_shared_memory(self.URM_train.data)
+#         self.workers = workers
 
-        _pfit = partial(_partial_fit, topK=self.topK, alpha=self.alpha, urm_shape=self.URM_train.shape,
-                        l1_ratio=self.l1_ratio, positive_only=self.positive_only,
-                        shm_names=[indptr_shm.name, indices_shm.name, data_shm.name],
-                        shm_shapes=[self.URM_train.indptr.shape, self.URM_train.indices.shape, self.URM_train.data.shape],
-                        shm_dtypes=[self.URM_train.indptr.dtype, self.URM_train.indices.dtype, self.URM_train.data.dtype])
+#         self.URM_train = check_matrix(self.URM_train, 'csc', dtype=np.float32)
 
-        with Pool(processes=self.workers) as pool:
+#         indptr_shm = create_shared_memory(self.URM_train.indptr)
+#         indices_shm = create_shared_memory(self.URM_train.indices)
+#         data_shm = create_shared_memory(self.URM_train.data)
 
-            pool_chunksize = 4
-            item_chunksize = 8
+#         _pfit = partial(_partial_fit, topK=self.topK, alpha=self.alpha, urm_shape=self.URM_train.shape,
+#                         l1_ratio=self.l1_ratio, positive_only=self.positive_only,
+#                         shm_names=[indptr_shm.name, indices_shm.name, data_shm.name],
+#                         shm_shapes=[self.URM_train.indptr.shape, self.URM_train.indices.shape, self.URM_train.data.shape],
+#                         shm_dtypes=[self.URM_train.indptr.dtype, self.URM_train.indices.dtype, self.URM_train.data.dtype])
 
-            itemchunks = np.array_split(np.arange(self.n_items), int(self.n_items / item_chunksize))
-            if verbose:
-                pbar = tqdm(total=self.n_items)
+#         with Pool(processes=self.workers) as pool:
 
-            # res contains a vector of (values, rows, cols) tuples
-            values, rows, cols = [], [], []
-            for values_, rows_, cols_ in pool.imap_unordered(_pfit, itemchunks, pool_chunksize):
-                values.extend(values_)
-                rows.extend(rows_)
-                cols.extend(cols_)
-                if verbose:
-                    pbar.update(item_chunksize)
+#             pool_chunksize = 4
+#             item_chunksize = 8
 
-        indptr_shm.close()
-        indices_shm.close()
-        data_shm.close()
+#             itemchunks = np.array_split(np.arange(self.n_items), int(self.n_items / item_chunksize))
+#             if verbose:
+#                 pbar = tqdm(total=self.n_items)
 
-        indptr_shm.unlink()
-        indices_shm.unlink()
-        data_shm.unlink()
+#             # res contains a vector of (values, rows, cols) tuples
+#             values, rows, cols = [], [], []
+#             for values_, rows_, cols_ in pool.imap_unordered(_pfit, itemchunks, pool_chunksize):
+#                 values.extend(values_)
+#                 rows.extend(rows_)
+#                 cols.extend(cols_)
+#                 if verbose:
+#                     pbar.update(item_chunksize)
 
-        # generate the sparse weight matrix
-        self.W_sparse = sps.csr_matrix((values, (rows, cols)), shape=(self.n_items, self.n_items), dtype=np.float32)
-        self.URM_train = self.URM_train.tocsr()
+#         indptr_shm.close()
+#         indices_shm.close()
+#         data_shm.close()
+
+#         indptr_shm.unlink()
+#         indices_shm.unlink()
+#         data_shm.unlink()
+
+#         # generate the sparse weight matrix
+#         self.W_sparse = sps.csr_matrix((values, (rows, cols)), shape=(self.n_items, self.n_items), dtype=np.float32)
+#         self.URM_train = self.URM_train.tocsr()
