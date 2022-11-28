@@ -115,7 +115,7 @@ class ALSMFRecommender(MatrixFactorizationRecommender):
 import implicit as impl
 
 
-class ImplicitALSRecommender(BaseMatrixFactorizationRecommender):
+class ImplicitALSRecommender(MatrixFactorizationRecommender):
     """ ALS implementation using the implicit library """
     RECOMMENDER_NAME = "ImplicitALSRecommender"
 
