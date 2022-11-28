@@ -122,6 +122,7 @@ class ImplicitALSRecommender(MatrixFactorizationRecommender):
     def __init__(self, URM: sp.csr_matrix, ICM,exclude_seen=True ):
         super().__init__(URM, ICM, exclude_seen)
         self.model = None
+        self.use_bias = False
 
         
 
