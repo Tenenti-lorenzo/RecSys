@@ -118,8 +118,8 @@ class MatrixFactorizationRecommender(Recommender):
     
     def _compute_item_score(self, user_id_array, items_to_compute = None):
         """
-        USER_factors is n_users x n_factors
-        ITEM_factors is n_items x n_factors
+        user_factors is n_users x n_factors
+        item_factors is n_items x n_factors
 
         The prediction for cold users will always be -inf for ALL items
 
@@ -128,19 +128,19 @@ class MatrixFactorizationRecommender(Recommender):
         :return:
         """
 
-        assert self.USER_factors.shape[1] == self.ITEM_factors.shape[1], \
+        assert self.user_factors.shape[1] == self.item_factors.shape[1], \
             "{}: User and Item factors have inconsistent shape".format(self.RECOMMENDER_NAME)
 
-        assert self.USER_factors.shape[0] > np.max(user_id_array),\
+        assert self.user_factors.shape[0] > np.max(user_id_array),\
                 "{}: Cold users not allowed. Users in trained model are {}, requested prediction for users up to {}".format(
-                self.RECOMMENDER_NAME, self.USER_factors.shape[0], np.max(user_id_array))
+                self.RECOMMENDER_NAME, self.user_factors.shape[0], np.max(user_id_array))
 
         if items_to_compute is not None:
-            item_scores = - np.ones((len(user_id_array), self.ITEM_factors.shape[0]), dtype=np.float32)*np.inf
-            item_scores[:, items_to_compute] = np.dot(self.USER_factors[user_id_array], self.ITEM_factors[items_to_compute,:].T)
+            item_scores = - np.ones((len(user_id_array), self.item_factors.shape[0]), dtype=np.float32)*np.inf
+            item_scores[:, items_to_compute] = np.dot(self.user_factors[user_id_array], self.item_factors[items_to_compute,:].T)
 
         else:
-            item_scores = np.dot(self.USER_factors[user_id_array], self.ITEM_factors.T)
+            item_scores = np.dot(self.user_factors[user_id_array], self.item_factors.T)
 
 
         # No need to select only the specific negative items or warm users because the -inf score will not change
@@ -157,8 +157,8 @@ class MatrixFactorizationRecommender(Recommender):
 
         self._print("Saving model in file '{}'".format(folder_path + file_name))
 
-        data_dict_to_save = {"USER_factors": self.USER_factors,
-                              "ITEM_factors": self.ITEM_factors,
+        data_dict_to_save = {"user_factors": self.user_factors,
+                              "item_factors": self.item_factors,
                               "use_bias": self.use_bias,
                             }
 
