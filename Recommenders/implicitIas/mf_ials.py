@@ -4,6 +4,7 @@ import time
 import scipy.sparse as sp
 #os.chdir("../")
 
+from Recommenders.BaseMatrixFactorizationRecommender import BaseMatrixFactorizationRecommender
 from Recommenders.implicitIas.recommenders.recommender import MatrixFactorizationRecommender
 from Recommenders.implicitIas.utils.official.IR_feature_weighting import apply_feature_weighting
 
@@ -114,7 +115,7 @@ class ALSMFRecommender(MatrixFactorizationRecommender):
 import implicit as impl
 
 
-class ImplicitALSRecommender(MatrixFactorizationRecommender):
+class ImplicitALSRecommender(BaseMatrixFactorizationRecommender):
     """ ALS implementation using the implicit library """
     RECOMMENDER_NAME = "ImplicitALSRecommender"
 
@@ -177,3 +178,5 @@ class ImplicitALSRecommender(MatrixFactorizationRecommender):
 
         if verbose:
             print("IMPLICIT ALS training computed in {:.2f} seconds".format(time.time() - start_time))
+
+
