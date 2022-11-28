@@ -272,7 +272,7 @@ class MultVAERecommender(BaseRecommender, Incremental_Training_Early_Stopping, B
             l2_reg=0.01,
             temp_file_folder=None,
             **earlystopping_kwargs):
-
+        
         self.temp_file_folder = self._get_unique_temp_folder(input_temp_file_folder=temp_file_folder)
 
         self.batch_size = batch_size
