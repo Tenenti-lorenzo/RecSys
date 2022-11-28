@@ -98,7 +98,7 @@ class Recommender:
         tmp = tmp.multiply(param)
         self.URM = sp.vstack((self.URM, tmp), format=format, dtype=np.float32)
 
-
+from Recommenders.DataIO import DataIO
 class MatrixFactorizationRecommender(Recommender):
     """ ABSTRACT MATRIX FACTORIZATION RECOMMENDER """
 
