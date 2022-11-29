@@ -146,7 +146,7 @@ class Dataset(object):
     def get_loaded_ICM_feature_mapper_dict(self):
         return self.AVAILABLE_ICM_feature_mapper.copy()
 
-    def get_loaded_UCM_dict(self):
+    def get_loaded_UCM_dict(self):\
         return _clone_dictionary(self.AVAILABLE_UCM)
 
     def get_loaded_UCM_feature_mapper_dict(self):

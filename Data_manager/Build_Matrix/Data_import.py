@@ -7,6 +7,8 @@ import pandas as pd
 
 def build_URM_ICM(dataset_, dataset_type_, dataset_lenght_, implicit=True,data_weight=1):
     df      = dataset_.copy()
+    columns_name = ['user_id','item_id','impression_list','data']
+    df.columns = columns_name
     df_l    = dataset_lenght_.copy()
     df_t    = dataset_type_.copy()
 
@@ -29,10 +31,13 @@ def build_URM_ICM(dataset_, dataset_type_, dataset_lenght_, implicit=True,data_w
     for col in column_fake:
         support[col]=0
     #Add dummies item
-    ICM_All = pd.concat([support,df])
+    ICM_All = pd.concat([support,df_t])
     ICM_All = ICM_All.sort_values(by=['item_id'])
-    ICM_All.reset_index().drop(columns=['index',"item_id"],inplace = True)
-    ICM_All = sps.csr_matrix(ICM_All.astype(pd.SparseDtype("int64",0)).sparse.to_coo())
+    ICM_All=ICM_All.reset_index()
+    ICM_All.drop(columns=['index',"item_id"],inplace = True)
+    n_items, n_features=ICM_All.shape
+    ICM_All = sps.csr_matrix(ICM_All, 
+                                shape=(n_items, n_features)).tocoo()
 
     if(implicit):
         df = df.groupby(by=['user_id','item_id']).count().reset_index()
@@ -43,7 +48,7 @@ def build_URM_ICM(dataset_, dataset_type_, dataset_lenght_, implicit=True,data_w
         support.item_id = sup
         support.user_id=0
         support.data=0
-        df = pd.concat([sup,df])
+        df = pd.concat([support,df])
         df = df.reset_index()
 
         unique_users = df.user_id.unique()
@@ -63,7 +68,7 @@ def build_URM_ICM(dataset_, dataset_type_, dataset_lenght_, implicit=True,data_w
         support.item_id = sup
         support.user_id=0
         support.data=0
-        df = pd.concat([sup,df])
+        df = pd.concat([support,df])
         df = df.reset_index()
 
         unique_users = df.user_id.unique()
