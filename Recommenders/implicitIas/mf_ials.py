@@ -57,11 +57,11 @@ class ALSMFRecommender(MatrixFactorizationRecommender):
     """ ALTERNATING LEAST SQUARE MATRIX FACTORIZATION RECOMMENDER SYSTEM ALGORITHM """
     RECOMMENDER_NAME = "ALSMFRecommender"
 
-    def __init__(self, URM: sp.csr_matrix, ICM, lambda_val=6.42, latent_factors=500, alpha=25.8,
+    def __init__(self, URM_train: sp.csr_matrix, ICM, lambda_val=6.42, latent_factors=500, alpha=25.8,
                  iterations=15, exclude_seen=True, feature_weighting="TF-IDF", K=1.2, B=0.75,
                  omega=14.5, add_side_info=True):
 
-        super().__init__(URM, ICM, exclude_seen)
+        super().__init__(URM_train, ICM, exclude_seen)
 
         self.alpha = alpha
         self.lambda_val = lambda_val
@@ -71,13 +71,13 @@ class ALSMFRecommender(MatrixFactorizationRecommender):
         self.K = K
         self.B = B
 
-        self.URM = self.URM.multiply(alpha).astype('double')
+        self.URM_train = self.URM_train.multiply(alpha).astype('double')
 
         if add_side_info:
             self.add_side_information(omega)
 
     def fit(self):
-        self.Cui = apply_feature_weighting(self.URM, self.feature_weighting, K=self.K, B=self.B)
+        self.Cui = apply_feature_weighting(self.URM_train, self.feature_weighting, K=self.K, B=self.B)
 
         """ Fits the ALS MF model """
 
@@ -119,8 +119,8 @@ class ImplicitALSRecommender(MatrixFactorizationRecommender):
     """ ALS implementation using the implicit library """
     RECOMMENDER_NAME = "ImplicitALSRecommender"
 
-    def __init__(self, URM: sp.csr_matrix, ICM,exclude_seen=True ):
-        super().__init__(URM, ICM, exclude_seen)
+    def __init__(self, URM_train: sp.csr_matrix, ICM,exclude_seen=True ):
+        super().__init__(URM_train, ICM, exclude_seen)
         self.model = None
         self.use_bias = False
 
@@ -137,12 +137,12 @@ class ImplicitALSRecommender(MatrixFactorizationRecommender):
         self.K = K
         self.B = B
 
-        self.URM = self.URM.multiply(alpha).astype('double')
+        self.URM_train = self.URM_train.multiply(alpha).astype('double')
 
         if add_side_info:
             self.add_side_information(omega)
 
-        self.URM = apply_feature_weighting(self.URM, self.feature_weighting, K=self.K, B=self.B)
+        self.URM_train = apply_feature_weighting(self.URM_train, self.feature_weighting, K=self.K, B=self.B)
 
         """ train the ALS model using the implicit module """
 
@@ -169,8 +169,8 @@ class ImplicitALSRecommender(MatrixFactorizationRecommender):
             exit('Invalid model name')
 
         # fit the ALS model
-        # since the model is expecting a item-user matrix we need to pass the transpose of URM
-        A = self.URM.T.copy()
+        # since the model is expecting a item-user matrix we need to pass the transpose of URM_train
+        A = self.URM_train.T.copy()
         self.model.fit(A)
 
         # gets the results of the training
