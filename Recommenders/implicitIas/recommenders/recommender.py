@@ -83,7 +83,7 @@ class Recommender:
         self._stack(self.ICM.T, beta)
 
     def get_URM_train(self):
-        return self.URM_train_train.copy()
+        return self.URM_train.copy()
 
     def _stack(self, to_stack, param, format='csr'):
 
