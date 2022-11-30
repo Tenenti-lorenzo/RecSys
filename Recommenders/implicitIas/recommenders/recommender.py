@@ -5,19 +5,19 @@ from Recommenders.implicitIas.utils.official.Recommender_utils import check_matr
 
 class Recommender:
 
-    def __init__(self, URM: sp.csr_matrix, ICM, exclude_seen=True):
-        if not sp.isspmatrix_csr(URM):
-            raise TypeError(f"We expected a CSR matrix, we got {type(URM)}")
-        self.URM = URM.copy()
+    def __init__(self, URM_train: sp.csr_matrix, ICM, exclude_seen=True):
+        if not sp.isspmatrix_csr(URM_train):
+            raise TypeError(f"We expected a CSR matrix, we got {type(URM_train)}")
+        self.URM_train = URM_train.copy()
         self.ICM = ICM.copy()
-        self.predicted_URM = None
+        self.predicted_URM_train = None
         self.exclude_seen = exclude_seen
         self.recommendations = None
 
     def fit(self):
         """
         Performs fitting and training of the recommender
-        Prepares the predicted_URM matrix
+        Prepares the predicted_URM_train matrix
         All needed parameters must be passed through init
         :return: Nothing
         """
@@ -54,13 +54,13 @@ class Recommender:
 
         """ Compute the predicted ratings for a given user_id """
 
-        return self.predicted_URM[user_id].toarray().ravel()
+        return self.predicted_URM_train[user_id].toarray().ravel()
 
     def __filter_seen(self, user_id, predicted_ratings):
-        start_pos = self.URM.indptr[user_id]
-        end_pos = self.URM.indptr[user_id + 1]
+        start_pos = self.URM_train.indptr[user_id]
+        end_pos = self.URM_train.indptr[user_id + 1]
 
-        user_profile = self.URM.indices[start_pos:end_pos]
+        user_profile = self.URM_train.indices[start_pos:end_pos]
 
         predicted_ratings[user_profile] = -np.inf
 
@@ -79,11 +79,11 @@ class Recommender:
 
     def add_side_information(self, beta):
 
-        self.URM = self.URM.copy()
+        self.URM_train = self.URM_train.copy()
         self._stack(self.ICM.T, beta)
 
-    def get_URM_train(self):
-        return self.URM_train.copy()
+    def get_URM_train_train(self):
+        return self.URM_train_train.copy()
 
     def _stack(self, to_stack, param, format='csr'):
 
@@ -96,14 +96,14 @@ class Recommender:
 
         tmp = check_matrix(to_stack, 'csr', dtype=np.float32)
         tmp = tmp.multiply(param)
-        self.URM = sp.vstack((self.URM, tmp), format=format, dtype=np.float32)
+        self.URM_train = sp.vstack((self.URM_train, tmp), format=format, dtype=np.float32)
 
 from Recommenders.DataIO import DataIO
 class MatrixFactorizationRecommender(Recommender):
     """ ABSTRACT MATRIX FACTORIZATION RECOMMENDER """
 
-    def __init__(self, URM: sp.csr_matrix, ICM, exclude_seen=True):
-        super().__init__(URM, ICM, exclude_seen)
+    def __init__(self, URM_train: sp.csr_matrix, ICM, exclude_seen=True):
+        super().__init__(URM_train, ICM, exclude_seen)
         self.user_factors = None  # playlist x latent_factors
         self.item_factors = None  # tracks x latent_factors
 
