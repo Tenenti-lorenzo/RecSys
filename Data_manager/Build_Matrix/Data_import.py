@@ -43,7 +43,7 @@ def build_URM_ICM(dataset_, dataset_type_, dataset_lenght_, implicit=True,data_w
         df = df.groupby(by=['user_id','item_id']).count().reset_index()
         df['data'] = 1
         
-
+        sup = np.setdiff1d(union,df["item_id"].unique())
         support = pd.DataFrame(columns=["user_id","item_id","data"])
         support.item_id = sup
         support.user_id=0
@@ -61,7 +61,7 @@ def build_URM_ICM(dataset_, dataset_type_, dataset_lenght_, implicit=True,data_w
                                 shape=(num_users, num_items))
     else:
 
-        #TODO
+        
         dataset['Data'] = dataset['Data'].replace({0:data_weight})
         dataset = dataset.groupby(by=['UserID','ItemID']).sum('Data').reset_index()
         support = pd.DataFrame(columns=["user_id","item_id","data"])
