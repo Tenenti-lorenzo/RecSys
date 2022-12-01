@@ -135,6 +135,7 @@ class BaseRecommender(object):
             user_id_array = np.atleast_1d(user_id_array)
             single_user = True
         else:
+            
             single_user = False
 
         if cutoff is None:
