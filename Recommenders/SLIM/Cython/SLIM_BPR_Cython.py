@@ -13,6 +13,11 @@ from Recommenders.Incremental_Training_Early_Stopping import Incremental_Trainin
 import os, sys
 
 
+from CythonCompiler.run_compile_subprocess import run_compile_subprocess
+import scipy.sparse as sps
+import numpy as np
+
+
 def estimate_required_MB(n_items, symmetric):
 
     requiredMB = 8 * n_items**2 / 1e+06
@@ -180,3 +185,46 @@ class SLIM_BPR_Cython(BaseItemSimilarityMatrixRecommender, Incremental_Training_
         else:
             self.W_sparse = similarityMatrixTopK(self.S_incremental, k = self.topK)
             self.W_sparse = check_matrix(self.W_sparse, format='csr')
+
+class SLIM_BPR_Cython_Hybrid(SLIM_BPR_Cython):
+    
+    RECOMMENDER_NAME = "SLIM_BPR_Recommender_Hybrid"
+
+
+    def __init__(self, URM_train, ICM,
+                 verbose = True,
+                 free_mem_threshold = 0.5):
+
+
+        super(SLIM_BPR_Cython_Hybrid, self).__init__(URM_train, verbose = verbose)
+        self.ICM = check_matrix(ICM.copy().T, 'csr', dtype=np.float32)
+        self.ICM.eliminate_zeros()
+        self.URM_or = URM_train
+
+
+    def fit(self, **args):
+
+        self.URM_train = sps.vstack((self.URM_or, self.ICM))
+        super(SLIM_BPR_Cython_Hybrid, self).fit(**args)
+        self.URM_train = self.URM_or
+
+class SLIM_BPR_Cython_HybridW(SLIM_BPR_Cython):
+
+    RECOMMENDER_NAME = "SLIM_BPR_Recommender_Hybrid"
+
+
+    def __init__(self, URM_train, ICM,
+                 verbose = True,
+                 free_mem_threshold = 0.5):
+
+
+        super(SLIM_BPR_Cython_HybridW, self).__init__(URM_train, verbose = verbose)
+        self.ICM = check_matrix(ICM.copy().T, 'csr', dtype=np.float32)
+        self.ICM.eliminate_zeros()
+        self.URM_or = URM_train
+    
+    def fit(self, mw = 1, **args):
+        
+        self.URM_train = sps.vstack((self.URM_or, self.ICM*mw))
+        super(SLIM_BPR_Cython_HybridW, self).fit(**args)
+        self.URM_train = self.URM_or
