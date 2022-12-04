@@ -123,7 +123,7 @@ def build_URM(dataset_,implicit=True,data_weight=1):
 
     return URM_ALL
 
-def userwise(num_group,cutoff = 10,recommender_object_dict={},URM_train,URM_test):
+def userwise(URM_train,URM_test,num_group,cutoff = 10,recommender_object_dict={}):
     profile_length = np.ediff1d(sps.csr_matrix(URM_train).indptr)
     block_size = int(len(profile_length)/num_group)
     sorted_users = np.argsort(profile_length)
