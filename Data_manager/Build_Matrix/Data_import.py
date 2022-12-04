@@ -2,6 +2,7 @@ import numpy as np
 import numpy.ma as ma
 import scipy.sparse as sps
 import pandas as pd
+from Evaluation.Evaluator import EvaluatorHoldout
 
 
 
@@ -121,3 +122,40 @@ def build_URM(dataset_,implicit=True,data_weight=1):
                                 shape=(num_users, num_items))
 
     return URM_ALL
+
+def userwise(num_group,cutoff = 10,recommender_object_dict={},URM_train,URM_test):
+    profile_length = np.ediff1d(sps.csr_matrix(URM_train).indptr)
+    block_size = int(len(profile_length)/num_group)
+    sorted_users = np.argsort(profile_length)
+    MAP_recommender_per_group = {}
+    for group_id in range(0, num_group):
+        
+        start_pos = group_id*block_size
+        end_pos = min((group_id+1)*block_size, len(profile_length))
+        
+        users_in_group = sorted_users[start_pos:end_pos]
+        
+        users_in_group_p_len = profile_length[users_in_group]
+        
+        print("Group {}, #users in group {}, average p.len {:.2f}, median {}, min {}, max {}".format(
+            group_id, 
+            users_in_group.shape[0],
+            users_in_group_p_len.mean(),
+            np.median(users_in_group_p_len),
+            users_in_group_p_len.min(),
+            users_in_group_p_len.max()))
+        
+        
+        users_not_in_group_flag = np.isin(sorted_users, users_in_group, invert=True)
+        users_not_in_group = sorted_users[users_not_in_group_flag]
+        
+        evaluator_test = EvaluatorHoldout(URM_test, cutoff_list=[cutoff], ignore_users=users_not_in_group)
+        
+        for label, recommender in recommender_object_dict.items():
+            result_df, _ = evaluator_test.evaluateRecommender(recommender)
+            if label in MAP_recommender_per_group:
+                MAP_recommender_per_group[label].append(result_df.loc[cutoff]["MAP"])
+            else:
+                MAP_recommender_per_group[label] = [result_df.loc[cutoff]["MAP"]]
+
+        return MAP_recommender_per_group
