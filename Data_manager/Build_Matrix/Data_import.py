@@ -4,7 +4,33 @@ import scipy.sparse as sps
 import pandas as pd
 from Evaluation.Evaluator import EvaluatorHoldout
 
+def build_URM_impression(df : pd.DataFrame, num_users, num_items):
+    df_impressions = df.drop(columns = ['data','item_id'])
+    df_impressions.dropna(inplace=True)
+    
+    df_impressions = df_impressions.groupby(by=['user_id'])['impression_list'].apply(list).reset_index()
 
+    def helper(list_string):
+        data = []
+        for string in list_string:
+            stuff = string.split(',')
+            for s in stuff:
+                int(s)
+                data.append(int(s))
+        return data
+
+    df_impressions['impression_list']= df_impressions['impression_list'].apply(helper)
+    df_impressions = df_impressions.groupby(by=['user_id'])['impression_list'].apply(np.array).reset_index()
+    df_impressions['impression_list'] = df_impressions['impression_list'].apply(np.concatenate)
+    df_impressions['impression_list'] = df_impressions['impression_list'].apply(np.unique)
+
+    A  = np.zeros(shape=(num_users,num_items))
+    for i in df_impressions['user_id']:
+        for j in df_impressions.iloc[i]['impression_list']:
+            A[i,j]=1
+
+    URM_impression = sps.csr_matrix(A)
+    return URM_impression
 
 def build_URM_ICM(dataset_, dataset_type_, dataset_lenght_, implicit=True,data_weight=1):
     df      = dataset_.copy()
