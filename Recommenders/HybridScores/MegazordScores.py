@@ -35,18 +35,18 @@ class MegazordScoresHybrid(BaseRecommender):
         item_weights_1 = self.recommender_1._compute_item_score(user_id_array)
         item_weights_2 = self.recommender_2._compute_item_score(user_id_array)
 
-        norm_item_weights_1 = LA.norm(item_weights_1, self.norm)
-        norm_item_weights_2 = LA.norm(item_weights_2, self.norm)
         
-        
-        if norm_item_weights_1 == 0:
-            raise ValueError("Norm {} of item weights for recommender 1 is zero. Avoiding division by zero".format(self.norm))
-        
-        if norm_item_weights_2 == 0:
-            raise ValueError("Norm {} of item weights for recommender 2 is zero. Avoiding division by zero".format(self.norm))
-            
         
         if self.normalize:
+            norm_item_weights_1 = LA.norm(item_weights_1, self.norm)
+            norm_item_weights_2 = LA.norm(item_weights_2, self.norm)
+        
+            if norm_item_weights_1 == 0:
+                raise ValueError("Norm {} of item weights for recommender 1 is zero. Avoiding division by zero".format(self.norm))
+        
+            if norm_item_weights_2 == 0:
+                raise ValueError("Norm {} of item weights for recommender 2 is zero. Avoiding division by zero".format(self.norm))
+            
             item_weights = item_weights_1 / norm_item_weights_1 * self.alpha + item_weights_2 / norm_item_weights_2 * (1-self.alpha)
         else:
             item_weights = item_weights_1 * self.alpha + item_weights_2 * (1-self.alpha)
