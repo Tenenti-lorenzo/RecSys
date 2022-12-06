@@ -23,7 +23,7 @@ class MegazordScoresHybrid(BaseRecommender):
         
         
         
-    def fit(self, norm, alpha = 0.5, normalize = True):
+    def fit(self, norm = 2, alpha = 0.5, normalize = True):
 
         self.alpha = alpha
         self.norm = norm
