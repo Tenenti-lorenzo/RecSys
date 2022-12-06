@@ -27,12 +27,19 @@ class MegazordListSampling(BaseRecommender):
     
     def recommend(self, user_id_array, cutoff = None, remove_seen_flag=True, items_to_compute = None,
                   remove_top_pop_flag = False, remove_custom_items_flag = False, return_scores = False):
-        
-        list1,score1 = self.recommender_1.recommend(user_id_array, cutoff = cutoff, remove_seen_flag=remove_seen_flag, items_to_compute = items_to_compute,
+
+
+        if np.isscalar(user_id_array):
+            list1 = self.recommender_1.recommend(user_id_array, cutoff = cutoff, remove_seen_flag=remove_seen_flag, items_to_compute = items_to_compute,
                   remove_top_pop_flag = remove_top_pop_flag, remove_custom_items_flag = remove_custom_items_flag, return_scores = return_scores)
-        list2,_ = self.recommender_2.recommend(user_id_array, cutoff = cutoff, remove_seen_flag=remove_seen_flag, items_to_compute = items_to_compute,
+            list2 = self.recommender_2.recommend(user_id_array, cutoff = cutoff, remove_seen_flag=remove_seen_flag, items_to_compute = items_to_compute,
                   remove_top_pop_flag = remove_top_pop_flag, remove_custom_items_flag = remove_custom_items_flag, return_scores = return_scores)
-        
+        else:
+            list1,score1 = self.recommender_1.recommend(user_id_array, cutoff = cutoff, remove_seen_flag=remove_seen_flag, items_to_compute = items_to_compute,
+                    remove_top_pop_flag = remove_top_pop_flag, remove_custom_items_flag = remove_custom_items_flag, return_scores = return_scores)
+            list2,_ = self.recommender_2.recommend(user_id_array, cutoff = cutoff, remove_seen_flag=remove_seen_flag, items_to_compute = items_to_compute,
+                    remove_top_pop_flag = remove_top_pop_flag, remove_custom_items_flag = remove_custom_items_flag, return_scores = return_scores)
+            
         final_list = []
         
         
@@ -66,5 +73,8 @@ class MegazordListSampling(BaseRecommender):
             
             
             final_list.append(final_sub_list)
-
-        return final_list,score1 # we don't care about the scores, we'll just pass the scores of the first recommender
+        
+        if np.isscalar(user_id_array):
+            return final_list
+        else:
+            return final_list,score1 # we don't care about the scores, we'll just pass the scores of the first recommender
