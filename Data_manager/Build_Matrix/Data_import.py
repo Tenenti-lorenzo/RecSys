@@ -215,7 +215,7 @@ def build_URM_ICM_onlyURM_item(dataset_, dataset_type_, dataset_lenght_, implici
     ICM_All = pd.concat([support,df_t])
     ICM_All = ICM_All.sort_values(by=['item_id'])
     ICM_All=ICM_All.reset_index()
-    ICM_All=ICM_All.loc[:df.item_id.unique()]
+    ICM_All=ICM_All[ICM_All.item_id < 24507]
     ICM_All.drop(columns=['index',"item_id"],inplace = True)
     n_items, n_features=ICM_All.shape
     ICM_All = sps.csr_matrix(ICM_All, 
