@@ -163,8 +163,8 @@ def build_URM(dataset_,implicit=True,data_weight=1):
                                 shape=(num_users, num_items))
     else:
         #impr weight, dataset type e lenght non usate per ora
-        dataset['Data'] = dataset['Data'].replace({0:data_weight})
-        dataset = dataset.groupby(by=['UserID','ItemID']).sum('Data').reset_index()
+        dataset['data'] = dataset['data'].replace({0:data_weight})
+        dataset = dataset.groupby(by=['user_id','item_id']).sum('data').reset_index()
 
         unique_users = dataset.user_id.unique()
         unique_items = dataset.item_id.unique()
@@ -172,7 +172,7 @@ def build_URM(dataset_,implicit=True,data_weight=1):
         num_users, min_user_id, max_user_id = unique_users.size, unique_users.min(), unique_users.max()
         num_items, min_item_id, max_item_id = unique_items.size, unique_items.min(), unique_items.max()
 
-        URM_ALL = sps.csr_matrix((dataset.Data, (dataset.UserID, dataset.ItemID)), 
+        URM_ALL = sps.csr_matrix((dataset.data, (dataset.user_id, dataset.item_id)), 
                                 shape=(num_users, num_items))
 
     return URM_ALL
