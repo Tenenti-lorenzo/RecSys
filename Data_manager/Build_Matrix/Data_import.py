@@ -1,6 +1,7 @@
 import numpy as np
 import numpy.ma as ma
 import scipy.sparse as sps
+from sklearn.cluster import KMeans
 import pandas as pd
 from Evaluation.Evaluator import EvaluatorHoldout
 
@@ -43,6 +44,24 @@ def build_ICM_lengh(dataset_l):
     df_1.columns = column
     df_1.index = df.item_id
     ICM_lenght = pd.DataFrame(np.zeros((24507,210)))
+    ICM_lenght[ICM_lenght.index.isin(df_1.index)] = df_1
+    return sps.csr_matrix(ICM_lenght)
+
+def build_ICM_lengh_kmeans(dataset_l):
+    df_l = dataset_l.copy()
+    df_l.drop(columns = ['feature_id'], inplace = True)
+    df = dataset_l[dataset_l.item_id <= 24506]
+    data = df.data.values
+    dataPR = data.reshape(-1,1)
+    kmeans = KMeans(n_clusters=7, random_state=0).fit(dataPR)
+    df.data = kmeans.labels_.copy()
+    num_items, min_item_id, max_item_id = len(df.data.unique()), df.data.min(), df.data.max()
+    item = range(0,24506)
+    df_1 = pd.get_dummies(df.data)
+    column = range(num_items)
+    df_1.columns = column
+    df_1.index = df.item_id
+    ICM_lenght = pd.DataFrame(np.zeros((24507,7)))
     ICM_lenght[ICM_lenght.index.isin(df_1.index)] = df_1
     return sps.csr_matrix(ICM_lenght)
 
