@@ -1,6 +1,7 @@
 import numpy as np
 import numpy.ma as ma
 import scipy.sparse as sps
+from sklearn.cluster import KMeans
 import pandas as pd
 from Evaluation.Evaluator import EvaluatorHoldout
 
@@ -31,6 +32,52 @@ def build_URM_impression(df : pd.DataFrame, num_users, num_items):
 
     URM_impression = sps.csr_matrix(A)
     return URM_impression
+
+def build_ICM_lengh(dataset_l):
+    df_l = dataset_l.copy()
+    df_l.drop(columns = ['feature_id'], inplace = True)
+    df = dataset_l[dataset_l.item_id <= 24506]
+    num_items, min_item_id, max_item_id = len(df.data.unique()), df.data.min(), df.data.max()
+    item = range(0,24506)
+    df_1 = pd.get_dummies(df.data)
+    column = range(num_items)
+    df_1.columns = column
+    df_1.index = df.item_id
+    ICM_lenght = pd.DataFrame(np.zeros((24507,210)))
+    ICM_lenght[ICM_lenght.index.isin(df_1.index)] = df_1
+    return sps.csr_matrix(ICM_lenght)
+
+def build_ICM_lengh_kmeans(dataset_l):
+    df_l = dataset_l.copy()
+    df_l.drop(columns = ['feature_id'], inplace = True)
+    df = dataset_l[dataset_l.item_id <= 24506]
+    data = df.data.values
+    dataPR = data.reshape(-1,1)
+    kmeans = KMeans(n_clusters=7, random_state=0).fit(dataPR)
+    df.data = kmeans.labels_.copy()
+    num_items, min_item_id, max_item_id = len(df.data.unique()), df.data.min(), df.data.max()
+    item = range(0,24506)
+    df_1 = pd.get_dummies(df.data)
+    column = range(num_items)
+    df_1.columns = column
+    df_1.index = df.item_id
+    ICM_lenght = pd.DataFrame(np.zeros((24507,7)))
+    ICM_lenght[ICM_lenght.index.isin(df_1.index)] = df_1
+    return sps.csr_matrix(ICM_lenght)
+
+def build_ICM_type(dataset_t):
+    df_t = dataset_t.copy()
+    df_t.drop(columns = ['data'], inplace = True)
+    df = dataset_t[dataset_t.item_id <= 24506]
+    num_items, min_item_id, max_item_id = len(df.feature_id.unique()), df.feature_id.min(), df.feature_id.max()
+    item = range(0,24506)
+    df_1 = pd.get_dummies(df.feature_id)
+    column = range(num_items)
+    df_1.columns = column
+    df_1.index = df.item_id
+    ICM_type = pd.DataFrame(np.zeros((24507,5)))
+    ICM_type[ICM_type.index.isin(df_1.index)] = df_1
+    return sps.csr_matrix(ICM_type)
 
 def build_URM_ICM(dataset_, dataset_type_, dataset_lenght_, implicit=True,data_weight=1):
     df      = dataset_.copy()
