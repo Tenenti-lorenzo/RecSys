@@ -3,9 +3,11 @@ import numpy.ma as ma
 import scipy.sparse as sps
 from sklearn.cluster import KMeans
 import pandas as pd
+from sklearn.preprocessing import StandardScaler
 from Evaluation.Evaluator import EvaluatorHoldout
 
-def build_URM_impression(df : pd.DataFrame, num_users, num_items):
+def build_URM_impression(df1 : pd.DataFrame, num_users, num_items):
+    df = df1.copy()
     df_impressions = df.drop(columns = ['data','item_id'])
     df_impressions.dropna(inplace=True)
     
@@ -24,7 +26,7 @@ def build_URM_impression(df : pd.DataFrame, num_users, num_items):
     df_impressions = df_impressions.groupby(by=['user_id'])['impression_list'].apply(np.array).reset_index()
     df_impressions['impression_list'] = df_impressions['impression_list'].apply(np.concatenate)
     df_impressions['impression_list'] = df_impressions['impression_list'].apply(np.unique)
-
+    
     A  = np.zeros(shape=(num_users,num_items))
     for i in df_impressions['user_id']:
         for j in df_impressions.iloc[i]['impression_list']:
@@ -47,6 +49,33 @@ def build_ICM_lengh(dataset_l):
     ICM_lenght[ICM_lenght.index.isin(df_1.index)] = df_1
     return sps.csr_matrix(ICM_lenght)
 
+def preprocess(df):
+    """Preprocess data for KMeans clustering"""
+    
+    df_log = np.log1p(df)
+    scaler = StandardScaler()
+    scaler.fit(df_log)
+    df_norm = scaler.transform(df_log)
+    
+    return df_norm
+def build_ICM_lengh_kmeans_3(dataset_l, n_clusters=3):
+    df_l = dataset_l.copy()
+    df_l.drop(columns = ['feature_id'], inplace = True)
+    df = dataset_l[dataset_l.item_id <= 24506]
+    data = df.data.values
+    dataPR = data.reshape(-1,1)
+    dataPR = preprocess(dataPR)
+    kmeans = KMeans(n_clusters, random_state=0).fit(dataPR)
+    df.data = kmeans.labels_.copy()
+    num_items, min_item_id, max_item_id = len(df.data.unique()), df.data.min(), df.data.max()
+    item = range(0,24506)
+    df_1 = pd.get_dummies(df.data)
+    column = range(num_items)
+    df_1.columns = column
+    df_1.index = df.item_id
+    ICM_lenght = pd.DataFrame(np.zeros((24507,n_clusters)))
+    ICM_lenght[ICM_lenght.index.isin(df_1.index)] = df_1
+    return sps.csr_matrix(ICM_lenght)
 def build_ICM_lengh_kmeans(dataset_l):
     df_l = dataset_l.copy()
     df_l.drop(columns = ['feature_id'], inplace = True)
