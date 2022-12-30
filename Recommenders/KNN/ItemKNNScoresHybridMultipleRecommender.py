@@ -125,6 +125,8 @@ class ItemKNNScoresHybridMultipleRecommender(BaseItemSimilarityMatrixRecommender
         l2_3_scores = item_weights_3 / l2_3
 
         item_weights = item_weights_1*self.alpha + item_weights_2*self.beta + item_weights_3*self.gamma
+        item_weights_2 = l2_1*self.alpha + l2_2*self.beta + l2_3*self.gamma
+        item_weights_3 = l2_1_scores*self.alpha + l2_2_scores*self.beta + l2_3_scores*self.gamma
 
         return item_weights
 

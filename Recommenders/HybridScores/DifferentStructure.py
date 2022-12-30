@@ -86,7 +86,7 @@ class ThreeDifferentModelRecommender(BaseRecommender):
         
         
         
-    def fit(self, norm, alpha = 0.5, beta = 0.5, gamma = 0.5):
+    def fit(self, norm,norm2, alpha = 0.5, beta = 0.5, gamma = 0.5):
 
         sump = alpha+beta+gamma
 
@@ -94,6 +94,7 @@ class ThreeDifferentModelRecommender(BaseRecommender):
         self.beta = beta/sump
         self.gamma = gamma/sump
         self.norm = norm
+        self.norm = norm2
 
         print(f"CURRENT CONFIGURATION:\n{self.recommender_1.RECOMMENDER_NAME} with weight alpha: {self.alpha}")
         print(f"{self.recommender_2.RECOMMENDER_NAME} with weight beta: {self.beta}")
@@ -107,9 +108,13 @@ class ThreeDifferentModelRecommender(BaseRecommender):
         item_weights_2 = self.recommender_2._compute_item_score(user_id_array)
         item_weights_3 = self.recommender_3._compute_item_score(user_id_array)
 
-        norm_item_weights_1 = 1 if self.norm is None else LA.norm(item_weights_1, self.norm)
-        norm_item_weights_2 = 1 if self.norm is None else LA.norm(item_weights_2, self.norm)
-        norm_item_weights_3 = 1 if self.norm is None else LA.norm(item_weights_3, self.norm)
+        norm_item_weights_1 = LA.norm(item_weights_1, self.norm) if self.norm is not None else 1
+        norm_item_weights_2 = LA.norm(item_weights_2, self.norm) if self.norm is not None else 1
+        norm_item_weights_3 = LA.norm(item_weights_3, self.norm) if self.norm is not None else 1
+
+        norm_item_weights_1 = LA.norm(item_weights_1, self.norm2) if self.norm is 2 and self.norm is 1 else LA.norm(item_weights_1, self.norm)
+        norm_item_weights_2 = LA.norm(item_weights_2, self.norm2) if self.norm is 2 and self.norm is 1 else LA.norm(item_weights_2, self.norm)
+        norm_item_weights_3 = LA.norm(item_weights_3, self.norm2) if self.norm is 2 and self.norm is 1 else LA.norm(item_weights_3, self.norm)
         
         
         if norm_item_weights_1 == 0:
