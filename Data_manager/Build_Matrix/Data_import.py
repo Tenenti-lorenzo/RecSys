@@ -6,6 +6,8 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from Evaluation.Evaluator import EvaluatorHoldout
 
+#useless comment
+
 def build_URM_impression(df1 : pd.DataFrame, num_users, num_items):
     df = df1.copy()
     df_impressions = df.drop(columns = ['data','item_id'])
