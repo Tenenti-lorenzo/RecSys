@@ -153,8 +153,8 @@ class P3alphaRecommenderICM(P3alphaRecommender):
 
         self.URM_train = self.URM_original
         for i in range(0,mw):
-            self.URM_train = sps.vstack((self.URM_train, self.ICM_type.T))
+            self.URM_train = sps.vstack((self.URM_train, self.ICM_type))
         for i in range(0,mw_1):
-            self.URM_train = sps.vstack((self.URM_train, self.ICM_lenght.T))
+            self.URM_train = sps.vstack((self.URM_train, self.ICM_lenght))
             
         super(P3alphaRecommenderICM, self).fit(**fit_args)
