@@ -134,17 +134,20 @@ class RP3betaRecommender(BaseItemSimilarityMatrixRecommender):
             self.W_sparse = similarityMatrixTopK(self.W_sparse, k=self.topK)
 
         self.W_sparse = check_matrix(self.W_sparse, format='csr')
+
+
 class RP3betaRecommenderICM(RP3betaRecommender):
     """ RP3beta recommender ICM based """
 
     RECOMMENDER_NAME = "RP3betaRecommenderICM"
 
-    def __init__(self, URM_train, ICM_train, verbose = True):
+    def __init__(self, URM_train, ICM_LENGHT, ICM_TYPE, verbose = True):
         super(RP3betaRecommenderICM, self).__init__(URM_train, verbose = verbose)
-        self.ICM_train = check_matrix(ICM_train.copy().T, 'csr', dtype=np.float32)
-        self.ICM_train.eliminate_zeros()
-        self.URM_train = self.ICM_train
-        self.URM_original = URM_train
+        self.ICM_type = check_matrix(ICM_TYPE.copy().T, 'csr', dtype=np.float32)
+        self.ICM_type.eliminate_zeros()
+        self.ICM_lenght = check_matrix(ICM_LENGHT.copy().T, 'csr', dtype=np.float32)
+        self.ICM_lenght.eliminate_zeros()
+        self.URM_original = self.URM_train
 
 
     def __str__(self):
@@ -152,7 +155,14 @@ class RP3betaRecommenderICM(RP3betaRecommender):
                                                                                         self.beta, self.min_rating, self.topK,
                                                                                         self.implicit, self.normalize_similarity)
 
-    def fit(self, **fit_args):
-        self.URM_train = self.ICM_train
-        super(RP3betaRecommenderICM, self).fit(**fit_args)
+    def fit(self,mw_1,mw, **fit_args):
+        self.mw = mw
+        self.mw_1 = mw_1
+
         self.URM_train = self.URM_original
+        for i in range(0,mw):
+            self.URM_train = sps.vstack((self.URM_train, self.ICM_type))
+        for i in range(0,mw_1):
+            self.URM_train = sps.vstack((self.URM_train, self.ICM_lenght))
+            
+        super(RP3betaRecommenderICM, self).fit(**fit_args)
