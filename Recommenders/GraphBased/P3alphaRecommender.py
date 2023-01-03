@@ -134,7 +134,7 @@ class P3alphaRecommender_stacked(BaseItemSimilarityMatrixRecommender):
     RECOMMENDER_NAME = "P3alphaRecommender"
 
     def __init__(self, URM_train, ICM_TYPE,ICM_LENGHT, verbose = True):
-        super(P3alphaRecommender_stacked, self).__init__(self, URM_train, ICM_TYPE,ICM_LENGHT, verbose = True)
+        super(P3alphaRecommender_stacked, self).__init__(self, URM_train, ICM_TYPE,ICM_LENGHT, verbose = verbose)
         self.ICM_type = check_matrix(ICM_TYPE.copy().T, 'csr', dtype=np.float32)
         self.ICM_type.eliminate_zeros()
         self.ICM_lenght = check_matrix(ICM_LENGHT.copy().T, 'csr', dtype=np.float32)
