@@ -40,7 +40,7 @@ class TwoDifferentModelRecommender(BaseRecommender):
         self.norm = norm
 
 
-    def _compute_item_score(self, user_id_array):
+    def _compute_item_score(self, user_id_array, items_to_compute = None):
         
         item_weights_1 = self.recommender_1._compute_item_score(user_id_array)
         item_weights_2 = self.recommender_2._compute_item_score(user_id_array)
