@@ -1,4 +1,4 @@
-from RecSys_Course_AT_PoliMi.Recommenders.BaseSimilarityMatrixRecommender import BaseItemSimilarityMatrixRecommender
+from Recommenders.BaseSimilarityMatrixRecommender import BaseItemSimilarityMatrixRecommender
 import numpy as np
 import numpy.linalg as LA
 
