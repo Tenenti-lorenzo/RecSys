@@ -1,16 +1,9 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on 15/11/20
-
-@author: GitMasters
-"""
 from numpy import linalg as LA
 import scipy.sparse as sps
 from Recommenders.Recommender_utils import check_matrix, similarityMatrixTopK
 from Recommenders.BaseRecommender import BaseRecommender
 
-class TwoDifferentModelRecommender(BaseRecommender):
+class TwoDifferentModelRecommender12(BaseRecommender):
     '''
     Hybrid of 2 predictions
     '''
@@ -26,7 +19,7 @@ class TwoDifferentModelRecommender(BaseRecommender):
 
 
     def __init__(self, URM_train, recommender_1, recommender_2):
-        super(TwoDifferentModelRecommender, self).__init__(URM_train)
+        super(TwoDifferentModelRecommender12, self).__init__(URM_train)
 
         self.URM_train = sps.csr_matrix(URM_train)
         self.recommender_1 = recommender_1
@@ -40,7 +33,7 @@ class TwoDifferentModelRecommender(BaseRecommender):
         self.norm = norm
 
 
-    def _compute_item_score(self, user_id_array, items_to_compute = None):
+    def _compute_item_score(self, user_id_array,items_to_compute = None):
         
         item_weights_1 = self.recommender_1._compute_item_score(user_id_array)
         item_weights_2 = self.recommender_2._compute_item_score(user_id_array)
@@ -102,7 +95,7 @@ class ThreeDifferentModelRecommender1(BaseRecommender):
         print(f"Norm type: {self.norm}")
 
 
-    def _compute_item_score(self, user_id_array):
+    def _compute_item_score(self, user_id_array,items_to_compute = None):
         
         item_weights_1 = self.recommender_1._compute_item_score(user_id_array)
         item_weights_2 = self.recommender_2._compute_item_score(user_id_array)
@@ -133,7 +126,7 @@ class ThreeDifferentModelRecommender1(BaseRecommender):
     def save_model(self, folder_path, file_name = None):
         print("Not saving")
 
-class ThreeDifferentModelRecommender(BaseRecommender):
+class ThreeDifferentModelRecommender12(BaseRecommender):
     '''
     Hybrid of 3 predictions
     '''
@@ -151,7 +144,7 @@ class ThreeDifferentModelRecommender(BaseRecommender):
 
 
     def __init__(self, URM_train, recommender_1, recommender_2, recommender_3):
-        super(ThreeDifferentModelRecommender, self).__init__(URM_train)
+        super(ThreeDifferentModelRecommender12, self).__init__(URM_train)
 
         self.URM_train = sps.csr_matrix(URM_train)
         self.recommender_1 = recommender_1
@@ -175,7 +168,7 @@ class ThreeDifferentModelRecommender(BaseRecommender):
         print(f"Norm type: {self.norm}")
 
 
-    def _compute_item_score(self, user_id_array, items_to_compute):
+    def _compute_item_score(self, user_id_array, items_to_compute = None):
         
         item_weights_1 = self.recommender_1._compute_item_score(user_id_array)
         item_weights_2 = self.recommender_2._compute_item_score(user_id_array)
