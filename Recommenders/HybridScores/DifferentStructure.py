@@ -68,7 +68,7 @@ class TwoDifferentModelRecommender(BaseRecommender):
 
 
     def __init__(self, URM_train, recommender_1, recommender_2):
-        super(TwoDifferentModelRecommender12, self).__init__(URM_train)
+        super(TwoDifferentModelRecommender, self).__init__(URM_train)
 
         self.URM_train = sps.csr_matrix(URM_train)
         self.recommender_1 = recommender_1
@@ -119,7 +119,7 @@ class ThreeDifferentModelRecommender(BaseRecommender):
 
 
     def __init__(self, URM_train, recommender_1, recommender_2, recommender_3):
-        super(ThreeDifferentModelRecommender1, self).__init__(URM_train)
+        super(ThreeDifferentModelRecommender, self).__init__(URM_train)
 
         self.URM_train = sps.csr_matrix(URM_train)
         self.recommender_1 = recommender_1
